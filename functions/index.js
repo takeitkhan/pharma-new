@@ -11,40 +11,131 @@ const {setGlobalOptions} = require("firebase-functions");
 const {onRequest} = require("firebase-functions/https");
 const logger = require("firebase-functions/logger");
 
-// For cost control, you can set the maximum number of containers that can be
-// running at the same time. This helps mitigate the impact of unexpected
-// traffic spikes by instead downgrading performance. This limit is a
-// per-function limit. You can override the limit for each function using the
-// `maxInstances` option in the function's options, e.g.
-// `onRequest({ maxInstances: 5 }, (req, res) => { ... })`.
-// NOTE: setGlobalOptions does not apply to functions using the v1 API. V1
-// functions should each use functions.runWith({ maxInstances: 10 }) instead.
-// In the v1 API, each function can only serve one request per container, so
-// this will be the maximum concurrent request count.
+// For cost control, set the maximum number of containers.
 setGlobalOptions({ maxInstances: 10 });
 
-// Create and deploy your first functions
-// https://firebase.google.com/docs/functions/get-started
-
-// exports.helloWorld = onRequest((request, response) => {
-//   logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
-
-const admin = require("firebase-admin");
 const { onDocumentCreated } = require("firebase-functions/v2/firestore");
+const admin = require("firebase-admin");
 
 admin.initializeApp();
 
+/**
+ * Send notification for "notice" collection
+ */
 exports.sendNoticeNotification = onDocumentCreated("notice/{docId}", async (event) => {
-  const data = event.data;
+  const snapshot = event.data;
+  if (!snapshot) {
+    console.log("No data associated with the event");
+    return;
+  }
+  const data = snapshot.data();
+
+  const postTitle = data.postTitle || "New Notice";
+  const postText = data.postText || "You have a new notice.";
+  // It's more reliable to get the ID from the event parameters
+  const noticeId = event.params.docId;
+
+  console.log("Notice Data:", { postTitle, postText, noticeId });
+
   const message = {
-    notification: {
-      title: data.postTitle || "New Notice",
-      body: data.postText || "",
-    },
     topic: "notice",
+    notification: {
+      title: postTitle,
+      body: postText,
+    },
+    data: {
+      title: postTitle,
+      body: postText,
+      noticeId: noticeId,
+      databaseName: "notice", // Added for client-side routing
+    },
+    android: {
+      priority: "high",
+      notification: {
+        channelId: "high_priority_notifications",
+        clickAction: "FLUTTER_NOTIFICATION_CLICK",
+      },
+    },
+    apns: {
+      headers: {
+        "apns-priority": "10",
+      },
+      payload: {
+        aps: {
+          sound: "default",
+          alert: {
+            title: postTitle,
+            body: postText,
+          },
+        },
+      },
+    },
   };
-  await admin.messaging().send(message);
-  console.log("Notification sent to all users (notice)");
+
+  try {
+    const response = await admin.messaging().send(message);
+    console.log("FCM response:", response);
+  } catch (error) {
+    console.error("FCM send error:", error);
+  }
+});
+
+/**
+ * Send notification for "contractorNotice" collection
+ */
+exports.sendContractorNoticeNotification = onDocumentCreated("contractorNotice/{docId}", async (event) => {
+  const snapshot = event.data;
+  if (!snapshot) {
+    console.log("No data associated with the event");
+    return;
+  }
+  const data = snapshot.data();
+
+  const postTitle = data.postTitle || "New Contractor Notice";
+  const postText = data.postText || "You have a new contractor notice.";
+  const noticeId = event.params.docId;
+
+  console.log("Contractor Notice Data:", { postTitle, postText, noticeId });
+
+  const message = {
+    topic: "contractorNotice",
+    notification: {
+      title: postTitle,
+      body: postText,
+    },
+    data: {
+      title: postTitle,
+      body: postText,
+      noticeId: noticeId,
+      databaseName: "contractorNotice", // Added for client-side routing
+    },
+    android: {
+      priority: "high",
+      notification: {
+        channelId: "high_priority_notifications",
+        clickAction: "FLUTTER_NOTIFICATION_CLICK",
+      },
+    },
+    apns: {
+      headers: {
+        "apns-priority": "10",
+      },
+      payload: {
+        aps: {
+          sound: "default",
+          alert: {
+            title: postTitle, // Corrected from "New Notice"
+            body: postText,
+          },
+        },
+      },
+    },
+  };
+
+  try {
+    const response = await admin.messaging().send(message);
+    console.log("FCM response:", response);
+  } catch (error) {
+    console.error("FCM send error:", error);
+  }
 });

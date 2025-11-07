@@ -69,32 +69,29 @@ class PushNotifications {
       print("Error retrieving token: $e");
     }
 
-    // Foreground messages
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      if (message.notification != null) {
-        showSimpleNotification(
-          title: message.notification!.title ?? 'No Title',
-          body: message.notification!.body ?? 'No Body',
-          payload: 'Foreground',
-        );
-      }
+      final title = message.notification?.title ?? message.data['title'] ?? 'No Title';
+      final body = message.notification?.body ?? message.data['body'] ?? 'No Body';
+
+      showSimpleNotification(
+        title: title,
+        body: body,
+        payload: 'Foreground',
+      );
     });
 
-    // Background/terminated messages
-    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      final title = message.notification?.title ?? message.data['title'] ?? 'No Title';
+      print('Notification opened app: $title');
+      navigatorKey.currentState?.pushNamed("/message", arguments: message);
+    });
 
-    // Handle messages that open the app (from terminated)
     FirebaseMessaging.instance.getInitialMessage().then((RemoteMessage? message) {
       if (message != null) {
-        print('App opened from notification: ${message.notification?.title}');
+        final title = message.notification?.title ?? message.data['title'] ?? 'No Title';
+        print('App opened from notification: $title');
         navigatorKey.currentState?.pushNamed("/message", arguments: message);
       }
-    });
-
-    // Handle messages when app is in background but not terminated
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      print('Notification opened app: ${message.notification?.title}');
-      navigatorKey.currentState?.pushNamed("/message", arguments: message);
     });
   }
 
