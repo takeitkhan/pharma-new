@@ -29,36 +29,43 @@ Future<List<String>> getValidFcodes() async {
     return [];
   }
 }
-
-// Function to get allowed domains asynchronously
+// Fetch allowed domains correctly
 Future<List<String>> getAllowedDomains() async {
-  try {
-    var querySnapshot =
-        await FirebaseFirestore.instance.collection('allowedDomains').get();
-    List<String> domains = [];
-    for (var doc in querySnapshot.docs) {
-      domains.add(doc['domain']);
-    }
-    return domains;
-  } catch (e) {
-    print('Error fetching allowed domains: $e');
-    return [];
-  }
+  final snapshot =
+  await FirebaseFirestore.instance.collection('allowedDomains').get();
+
+  return snapshot.docs
+      .map((doc) => (doc.data()['domain'] ?? '').toString().trim().toLowerCase())
+      .where((domain) => domain.isNotEmpty)
+      .toList();
 }
-
-// Function to check the email domain asynchronously
+// Validate email domain
 Future<bool> _checkEmailDomain(String email, BuildContext context) async {
-  List<String> allowedDomains = await getAllowedDomains();
+  try {
+    final allowedDomains = await getAllowedDomains();
 
-  bool isValidDomain =
-      allowedDomains.any((domain) => email.endsWith('@' + domain));
+    final normalizedEmail = email.trim().toLowerCase();
+    final emailDomain = normalizedEmail.split('@').last; // extract after '@'
 
-  if (!isValidDomain) {
-    snackBar(
-        context, "You have to use an email address from an allowed domain");
+    final isValid = allowedDomains.contains(emailDomain);
+
+    print('Allowed domains: $allowedDomains');
+    print('Email domain: $emailDomain, Match: $isValid');
+
+    if (!isValid) {
+      snackBar(
+        context,
+        'Registration restricted. Use an allowed domain (e.g., nhs.net, gmail.com).',
+      );
+      return false;
+    }
+
+    return true;
+  } catch (e) {
+    print('Error checking email domain: $e');
+    snackBar(context, 'Something went wrong while validating the email domain.');
     return false;
   }
-  return true;
 }
 
 class Registration extends StatefulWidget {
@@ -105,8 +112,10 @@ class _RegistrationState extends State<Registration> {
     if (isChecked) {
       List<String> validFcodes =
           await getValidFcodes(); // Fetch the valid ODS codes from Firestore
-      if (!validFcodes.contains(fcodeController.text)) {
-        snackBar(context, "Invalid ODS code");
+      //print("ODS Codes from Firestore: $validFcodes");
+      //print("ODS Code from TextField: ${fcodeController.text.trim()}");
+      if (!validFcodes.contains(fcodeController.text.trim())) {
+        snackBar(context, "Use valid ODS code or all caps letters");
         return; // Stop if the ODS code is not valid
       }
     }
@@ -216,7 +225,7 @@ class _RegistrationState extends State<Registration> {
                       Row(
                         children: [
                           Text(
-                            "Please provide your ODS code.",
+                            "Please provide your ODS code. All caps letters.",
                             style: TextStyle(
                                 fontSize: 13.sp,
                                 color: Theme.of(context).primaryColor),

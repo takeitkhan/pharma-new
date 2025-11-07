@@ -25,35 +25,6 @@ class _PharmasistListState extends State<PharmasistList> {
         height: 837,
         child: Column(
           children: [
-            // SizedBox(height: 25.h),
-            // Header row with "Name" and "Action"
-            // Row(
-            //   children: [
-            //     Text(
-            //       "Name",
-            //       style: GoogleFonts.lato(
-            //         fontSize: 17.sp,
-            //         color: Colors.black26, // Adjusted for readability
-            //         fontWeight: FontWeight.bold,
-            //       ),
-            //     ),
-            //     Spacer(),
-            //     SizedBox(
-            //       width: 130.w,
-            //       child: Center(
-            //         child: Text(
-            //           "Action",
-            //           style: GoogleFonts.lato(
-            //             fontSize: 17.sp,
-            //             color: ashColor,
-            //             fontWeight: FontWeight.bold,
-            //           ),
-            //         ),
-            //       ),
-            //     ),
-            //   ],
-            // ),
-            // SizedBox(height: 15.h),
             const Divider(
               thickness: 0,
               height: 0,

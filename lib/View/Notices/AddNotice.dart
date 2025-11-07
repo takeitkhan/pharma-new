@@ -5,6 +5,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../Provider/notice_provider.dart';
 import '../../Utils/custom_loading.dart';
+import '../../Utils/notification_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 
 class AddNotice extends StatefulWidget {
   AddNotice({Key? key, this.documentSnapshot}) : super(key: key);
@@ -54,6 +57,13 @@ class _AddNoticeState extends State<AddNotice> {
         selectedAudience: selectedAudience,
         // Pass selected audience
         context: context,
+      );
+
+      // ✅ Send notification to topic
+      await NotificationService.sendTopicNotification(
+        title: titleController.text,
+        body: postController.text,
+        topic: selectedAudience == "All Users" ? "notice" : "contractorNotice",
       );
       Navigator.of(context, rootNavigator: true).pop();
       Navigator.pop(context);
