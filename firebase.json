@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {
   "functions": [
     {
@@ -14,3 +15,6 @@
     }
   ]
 }
+=======
+{"flutter":{"platforms":{"android":{"default":{"projectId":"pharma-d27ac","appId":"1:924871265359:android:7f77084253efb16ee2ae3a","fileOutput":"android/app/google-services.json"}},"ios":{"default":{"projectId":"pharma-d27ac","appId":"1:924871265359:ios:41f9857f5801429de2ae3a","uploadDebugSymbols":false,"fileOutput":"ios/Runner/GoogleService-Info.plist"}},"macos":{"default":{"projectId":"pharma-d27ac","appId":"1:924871265359:ios:21b1ae1ed871a91be2ae3a","uploadDebugSymbols":false,"fileOutput":"macos/Runner/GoogleService-Info.plist"}},"dart":{"lib/firebase_options.dart":{"projectId":"pharma-d27ac","configurations":{"android":"1:924871265359:android:7f77084253efb16ee2ae3a","ios":"1:924871265359:ios:41f9857f5801429de2ae3a","macos":"1:924871265359:ios:21b1ae1ed871a91be2ae3a","web":"1:924871265359:web:ad072dd7b2ea2d14e2ae3a","windows":"1:924871265359:web:9074b1bef6a24a8ee2ae3a"}}}}}}
+>>>>>>> abf0483 (Corrected version on mac)

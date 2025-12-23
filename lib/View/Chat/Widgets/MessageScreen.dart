@@ -11,33 +11,40 @@ class MessageScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     var pro = Provider.of<ProfileProvider>(context, listen: false);
 
-    return AppBar(
-      title: Text(
-        "Messages",
-        style: GoogleFonts.lato( // Changed to Lato font
-          color: Colors.black,
-          fontSize: 18.sp,
-          fontWeight: FontWeight.w600,
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          "Messages",
+          style: GoogleFonts.lato(
+            color: Colors.black,
+            fontSize: 18.sp,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        centerTitle: true,
+        backgroundColor: Colors.white,
+        elevation: 0,
+        actions: [
+          if (pro.role == "admin")
+            IconButton(
+              icon: Icon(FontAwesomeIcons.users, size: 22.sp),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AdminPanel(isAdminPanel: false),
+                  ),
+                );
+              },
+            ),
+        ],
+      ),
+      body: Center(
+        child: Text(
+          "No messages yet",
+          style: GoogleFonts.lato(fontSize: 16.sp),
         ),
       ),
-      centerTitle: true,
-      backgroundColor: Colors.white,
-      elevation: 0,
-      actions: [
-        // Admin icon on the right (shown only if the user is an admin)
-        if (pro.role == "admin")
-          IconButton(
-            icon: Icon(FontAwesomeIcons.users, size: 22.sp),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => AdminPanel(isAdminPanel: false),
-                ),
-              );
-            },
-          ),
-      ],
     );
   }
 }

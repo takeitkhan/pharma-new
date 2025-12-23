@@ -1,32 +1,34 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
-import 'package:shimmer/shimmer.dart';
-
 import '../../../Provider/chat_provider.dart';
 import '../../../Provider/profile_provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../Chat.dart';
 
 class IndividualChatInfo extends StatefulWidget {
-  const IndividualChatInfo({Key? key, required this.uid, required this.lastMs})
-      : super(key: key);
-  final String lastMs;
   final String uid;
+  final String lastMs;
+
+  const IndividualChatInfo({
+    Key? key,
+    required this.uid,
+    required this.lastMs,
+  }) : super(key: key);
 
   @override
-  _IndividualChatInfoState createState() => _IndividualChatInfoState();
+  State<IndividualChatInfo> createState() => _IndividualChatInfoState();
 }
 
 class _IndividualChatInfoState extends State<IndividualChatInfo> {
-  late DocumentSnapshot data;
   bool isLoading = true;
+  late DocumentSnapshot data;
 
   @override
   void initState() {
-    getInfo();
     super.initState();
+    getInfo();
   }
 
   getInfo() async {
@@ -34,103 +36,93 @@ class _IndividualChatInfoState extends State<IndividualChatInfo> {
         .getProfileInfoByUID(widget.uid);
 
     if (mounted) {
-      setState(() {
-        isLoading = false;
-      });
+      setState(() => isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return isLoading
-        ? Shimmer.fromColors(
-      baseColor: Colors.grey,
-      highlightColor: Colors.grey,
-      child: Row(
-        children: [
-          CircleAvatar(backgroundColor: Colors.grey, radius: 20.sp),
-          SizedBox(width: 15.w),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: const [
-              Text("User name", style: TextStyle(fontSize: 14)),
-              Text("............", style: TextStyle(fontSize: 13)),
-            ],
-          ),
-        ],
-      ),
-    )
-        : InkWell(
-      highlightColor: Colors.transparent,
-      splashColor: Colors.transparent,
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 12.w),
+      child: isLoading ? _buildShimmer() : _buildContent(),
+    );
+  }
+
+  Widget _buildContent() {
+    return InkWell(
       onTap: () {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) =>
-                Chat(name: data["name"], url: data["url"], uid: data.id, token: data["token"]),
+            builder: (_) => Chat(
+              name: data["name"],
+              url: data["url"],
+              uid: data.id,
+              token: data["token"],
+            ),
           ),
         );
       },
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          returnImage(data),
-          SizedBox(width: 15.w),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              buildNameText(),
-              SizedBox(height: 2.h),
-              buildLastText(),
-            ],
+          // Profile Picture
+          CircleAvatar(
+            radius: 26.sp,
+            backgroundColor: Colors.grey.shade300,
+            backgroundImage: data["url"] != ""
+                ? NetworkImage(data["url"])
+                : const AssetImage("assets/profile.jpg") as ImageProvider,
           ),
-          const Spacer(),
+
+          SizedBox(width: 14.w),
+
+          // Name + Last Message
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  data["name"],
+                  style: GoogleFonts.lato(
+                    fontSize: 17.sp,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                SizedBox(height: 4.h),
+                Text(
+                  ChatProvider.decrypt(widget.lastMs),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                  style: GoogleFonts.lato(
+                    fontSize: 14.sp,
+                    color: Colors.black54,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Text buildNameText() {
-    return Text(
-      data["name"],
-      style: GoogleFonts.lato( // Changed to Lato font
-        fontSize: 16.sp,
-        fontWeight: FontWeight.w500,
-      ),
-    );
-  }
-
-  SizedBox buildLastText() {
-    return SizedBox(
-      height: 20.h,
-      width: 230.w,
-      child: Text(
-        ChatProvider.decrypt(widget.lastMs),
-        overflow: TextOverflow.ellipsis,
-        maxLines: 1,
-        style: GoogleFonts.lato( // Changed to Lato font
-          fontSize: 14.sp,
-          color: const Color(0xff6a6a6a),
-          fontWeight: FontWeight.w400,
+  Widget _buildShimmer() {
+    return Row(
+      children: [
+        CircleAvatar(
+          radius: 26.sp,
+          backgroundColor: Colors.grey.shade300,
         ),
-      ),
+        SizedBox(width: 14.w),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(width: 140.w, height: 16.h, color: Colors.grey.shade300),
+            SizedBox(height: 6.h),
+            Container(width: 200.w, height: 14.h, color: Colors.grey.shade300),
+          ],
+        ),
+      ],
     );
   }
-}
-
-Widget returnImage(DocumentSnapshot data) {
-  return data["url"] != ""
-      ? CircleAvatar(
-    backgroundColor: Colors.grey,
-    radius: 22.sp,
-    backgroundImage: NetworkImage(
-      data["url"],
-    ),
-  )
-      : CircleAvatar(
-    backgroundColor: Colors.grey,
-    radius: 22.sp,
-    backgroundImage: const AssetImage("assets/profile.jpg"),
-  );
 }

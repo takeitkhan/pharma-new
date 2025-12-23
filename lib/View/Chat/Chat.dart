@@ -48,6 +48,7 @@ class _ChatState extends State<Chat> {
       appBar: AppBar(
         title: Text(
           widget.name,
+          overflow: TextOverflow.ellipsis, // ✅ prevents overflow for long names
           style: GoogleFonts.lato(color: Colors.black),
         ),
         backgroundColor: Colors.white,
@@ -62,9 +63,9 @@ class _ChatState extends State<Chat> {
           Consumer<ChatProvider>(
             builder: (context, provider, child) {
               return Container(
-                margin: EdgeInsets.fromLTRB(30.w, 20.h, 30.w, 20.h),
+                margin: EdgeInsets.symmetric(vertical: 40.h),
+                padding: EdgeInsets.symmetric(horizontal: 30.w),
                 height: 60.h,
-                width: double.infinity,
                 child: Container(
                   decoration: BoxDecoration(
                     color: Colors.white,
@@ -92,6 +93,7 @@ class _ChatState extends State<Chat> {
                         ),
                       ),
                       IconButton(
+                        padding: EdgeInsets.zero, // ✅ Added
                         onPressed: () {
                           if (_controller.text.isNotEmpty) {
                             provider.addMessage(

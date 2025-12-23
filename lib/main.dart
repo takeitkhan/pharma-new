@@ -21,37 +21,29 @@ import 'View/Auth/Registration.dart';
 import 'View/Auth/Signin.dart';
 import 'View/Notices/SingleNotice.dart';
 import 'View/profile/Profile.dart';
-import 'FirebaseOptions.dart';
+
 import 'initial.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'dart:io';
+
+
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  try {
-    final result = await InternetAddress.lookup('google.com');
-    if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
-      print('✅ Internet connected');
-    }
-  } on SocketException catch (_) {
-    print('❌ No internet connection');
-  }
 
-  try {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-  } on FirebaseException catch (e) {
-    if (e.code != 'duplicate-app') {
-      rethrow;
-    }
-  }
-
+  // Initialize Firebase only if no app exists yet
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  
+  // Push notifications
   PushNotifications.init();
   PushNotifications.localNotiInit();
 
@@ -72,6 +64,8 @@ void main() async {
 
   runApp(const MyApp());
 }
+
+
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);

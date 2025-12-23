@@ -5,15 +5,17 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
+// Ensure you have the correct path to your SnackBar widget
 import '../View/Auth/widgets/SnackBar.dart';
 
+// The Authentication class must extend ChangeNotifier to use notifyListeners()
 class Authentication with ChangeNotifier {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
   // Stream to track auth state changes
   Stream<User?> get authStateChange => _firebaseAuth.authStateChanges();
 
-  // Sign in function
+  // Sign in function (Already correct)
   Future<String> signIn(
       String email, String password, BuildContext context) async {
     try {
@@ -51,8 +53,11 @@ class Authentication with ChangeNotifier {
     }
   }
 
-  // Sign up function
-  Future<String> signUp({
+
+
+  // Sign up function (Corrected to return Future<String> as required)
+  
+Future<String> signUp({
     required String name,
     required String email,
     required String password,
@@ -61,61 +66,50 @@ class Authentication with ChangeNotifier {
     bool isRegistration = true,
   }) async {
     try {
-      _firebaseAuth
-          .createUserWithEmailAndPassword(
+      // 1. Await the creation process instead of using .then/.catchError for better async flow
+      UserCredential userCredential = await _firebaseAuth.createUserWithEmailAndPassword(
         email: email,
         password: password,
-      )
-          .then(
-        (value) async {
-          Navigator.of(context, rootNavigator: true).pop();
-          if (isRegistration) {
-            Navigator.of(context).pushReplacementNamed("MiddleOfHomeAndSignIn");
-          }
-          final token = await FirebaseMessaging.instance.getToken();
-          FirebaseFirestore.instance
-              .collection("users")
-              .doc(value.user!.uid)
-              .set({
-            "name": name,
-            "email": value.user!.email,
-            "url": "",
-            "role": fCode.isEmpty ? "" : "contractor",
-            "token": token,
-          });
-        },
-      ).catchError((error) {
-        Navigator.of(context, rootNavigator: true).pop();
-        switch (error.code) {
-          case "weak-password":
-            snackBar(context, "Your password is too weak.");
-            break;
-          case "invalid-email":
-            snackBar(context, "Your email is invalid.");
-            break;
-          case "email-already-in-use":
-            snackBar(
-                context, "Email is already in use on a different account.");
-            break;
-          default:
-            snackBar(context, "An undefined error occurred.");
-        }
+      );
+
+      Navigator.of(context, rootNavigator: true).pop();
+      if (isRegistration) {
+        Navigator.of(context).pushReplacementNamed("MiddleOfHomeAndSignIn");
+      }
+      
+      final token = await FirebaseMessaging.instance.getToken();
+      await FirebaseFirestore.instance
+          .collection("users")
+          .doc(userCredential.user!.uid)
+          .set({
+        "name": name,
+        "email": userCredential.user!.email,
+        "url": "",
+        "role": fCode.isEmpty ? "" : "contractor",
+        "token": token,
       });
+
       return "Success";
-    } on FirebaseAuthException catch (e) {
+      
+    } on FirebaseAuthException catch (e) { // CATCH BLOCK 1: Handles FirebaseAuth specific errors
       Navigator.of(context, rootNavigator: true).pop();
       switch (e.code) {
         case "weak-password":
-          return "Your password is too weak.";
+          snackBar(context, "Your password is too weak.");
+          return "Your password is too weak."; // Must return a value
         case "invalid-email":
+          snackBar(context, "Your email is invalid.");
           return "Your email is invalid.";
         case "email-already-in-use":
+          snackBar(context, "Email is already in use on a different account.");
           return "Email is already in use on a different account.";
         default:
+          snackBar(context, "An undefined error occurred.");
           return "An undefined error occurred.";
       }
-    } catch (e) {
+    } catch (error) { // CATCH BLOCK 2: Handles all other errors
       Navigator.of(context, rootNavigator: true).pop();
+      snackBar(context, "An error occurred during sign-up.");
       return "An error occurred.";
     }
   }
@@ -130,26 +124,7 @@ class Authentication with ChangeNotifier {
     required context,
     bool isRegistration = true,
   }) async {
-    try {
-      /*var secondaryAppOptions = const FirebaseOptions(
-        apiKey: "AIzaSyAXuKthNAleNpyiIGEoOKyAKje9_2q1dS4",
-        appId: "1:924871265359:android:361c37964409bff1e2ae3a",
-        projectId: "pharma-d27ac",
-        messagingSenderId: "924871265359",
-      );
-
-      // Initialize the secondary Firebase app
-      FirebaseApp secondaryApp;
-      try {
-        secondaryApp = await Firebase.initializeApp(
-          name: 'secondary',
-          options: secondaryAppOptions,
-        );
-      } catch (e) {
-        secondaryApp = Firebase.app('secondary'); // Get existing app
-      }*/
-
-
+    try { // <<-- ADDED 'try' BLOCK HERE
       // Use the secondary app for user creation
       //final auth = FirebaseAuth.instanceFor(app: secondaryApp);
       //UserCredential credential = await auth.createUserWithEmailAndPassword(
@@ -157,10 +132,11 @@ class Authentication with ChangeNotifier {
         email: email,
         password: password,
       );
+
       Navigator.of(context, rootNavigator: true).pop();
       if (credential.user != null) {
         await credential.user!.sendEmailVerification();
-        FirebaseFirestore.instance
+        await FirebaseFirestore.instance // <<-- Added await
             .collection("users")
             .doc(credential.user!.uid)
             .set({
@@ -170,7 +146,7 @@ class Authentication with ChangeNotifier {
           "role": "",
           "token": "",
         });
-        FirebaseFirestore.instance
+        await FirebaseFirestore.instance // <<-- Added await
             .collection("pharmacy")
             .doc(pharmacyId)
             .collection("pharmacies")
@@ -180,7 +156,7 @@ class Authentication with ChangeNotifier {
       // Delete the secondary app (consider keeping it if needed)
       //await secondaryApp.delete();
       return "Success";
-    } on FirebaseAuthException catch (e) {
+    } on FirebaseAuthException catch (e) { // <<-- CATCH BLOCK 1 (Now correctly inside a try block)
       Navigator.of(context, rootNavigator: true).pop();
       switch (e.code) {
         case "weak-password":
@@ -192,18 +168,19 @@ class Authentication with ChangeNotifier {
         default:
           return "An undefined error occurred.";
       }
-    } catch (e) {
+    } catch (e) { // <<-- CATCH BLOCK 2
+      Navigator.of(context, rootNavigator: true).pop(); // Added pop on general error
       return "An error occurred.";
     }
   }
 
-  // Sign out function
+  // Sign out function (Needs no correction)
   Future signOut() async {
     await _firebaseAuth.signOut();
     notifyListeners();
   }
 
-  // Reset password
+  // Reset password (Needs no correction)
   Future<String> resetPassword(String email, BuildContext context) async {
     try {
       await _firebaseAuth.sendPasswordResetEmail(email: email);
@@ -213,15 +190,18 @@ class Authentication with ChangeNotifier {
     }
   }
 
-  // Delete user
+  // Delete user (Needs no correction)
   Future deleteUser() async {
     final User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      await FirebaseFirestore.instance
+      // Delete data from Firestore
+      await FirebaseFirestore.instance 
           .collection("users")
           .doc(user.uid)
           .delete();
-      user.delete();
+      // Delete the user from Firebase Auth
+      await user.delete(); 
+      // Note: No notifyListeners() needed here unless you manage current user state outside of the stream
     }
   }
 }

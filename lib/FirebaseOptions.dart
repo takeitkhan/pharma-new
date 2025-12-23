@@ -51,10 +51,10 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyBgInC06BVTHHJ34tT0W1aCL6rA3XU2m-M',
-    appId: '1:924871265359:ios:e7e5e06f94ba0c54e2ae3a',
+    appId: '1:924871265359:ios:ead20622684cc1b0e2ae3a',
     messagingSenderId: '924871265359',
     projectId: 'pharma-d27ac',
-    storageBucket: 'pharma-d27ac.appspot.com',
+    storageBucket: 'pharma-d27ac.firebasestorage.app',
     iosBundleId: 'com.communitypharmacyconnect.pharma',
   );
 }

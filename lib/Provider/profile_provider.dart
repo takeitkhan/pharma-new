@@ -25,41 +25,6 @@ class ProfileProvider extends ChangeNotifier {
   bool refreshAssignBus = false;
   bool isProfileComplete = true;
 
-  // Future getUserInfo() async {
-  //   final User? user = FirebaseAuth.instance.currentUser;
-  //   if (user != null) {
-  //     DocumentSnapshot userInfo = await FirebaseFirestore.instance
-  //         .collection('users')
-  //         .doc(user.uid)
-  //         .get();
-  //     profileUrl = userInfo["url"];
-  //     profileName = userInfo["name"];
-  //     role = userInfo["role"];
-  //     email = userInfo["email"];
-  //     currentUserUid = user.uid;
-  //
-  //     if (userInfo["role"] == "contractor" || userInfo["role"] == "admin") {
-  //       FirebaseMessaging.instance.subscribeToTopic("contractorNotice");
-  //     }
-  //
-  //     try {
-  //       pharmacyRole = userInfo["pharmacyRole"];
-  //       roleOther = userInfo["roleOther"];
-  //       number = userInfo["number"];
-  //       isIndependentPrescriber = userInfo["isIndependentPrescriber"];
-  //       clinicalArea = userInfo["clinicalArea"];
-  //       GPHCNumber = userInfo["GPHCNumber"];
-  //       bestDescribe = userInfo["bestDescribe"];
-  //     } catch (e) {
-  //       print("error---------------");
-  //       isProfileComplete = false;
-  //       print(isProfileComplete);
-  //       print(e);
-  //     }
-  //     notifyListeners();
-  //   }
-  // }
-
   Future getUserInfo() async {
     final User? user = FirebaseAuth.instance.currentUser;
 
@@ -101,6 +66,7 @@ class ProfileProvider extends ChangeNotifier {
       print("⚠️ No user logged in!");
     }
   }
+
 
 
   Future updateProfileInfo({
